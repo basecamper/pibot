@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" type="text/css" href="ws.css">
+        <script src="tools.js" type="text/javascript"></script>
+        <script src="./Controls/SmsControls.js" type="text/javascript"></script>
+        <script src="./Controls/CallControls.js" type="text/javascript"></script>
+        <script src="./Controls/CmdControls.js" type="text/javascript"></script>
+        <script src="./Controls/RlpControls.js" type="text/javascript"></script>
+        <script src="./Controls/OpControls.js" type="text/javascript"></script>
+        <script src="./Controls/BandControls.js" type="text/javascript"></script>
+        <script src="./Controls/SysControls.js" type="text/javascript"></script>
+        <script src="./Controls/MessageControls.js" type="text/javascript"></script>
+        <script src="./Controls/VoiceMailControls.js" type="text/javascript"></script>
+        <script src="insertLocale.js" type="text/javascript"></script><!-- you can remove this line -->
+    <script type="text/javascript">
+
+        socket = undefined;
+        messages = undefined;
+        header = undefined;
+        activity = undefined;
+        callContainer = undefined;
+        iUrl = undefined;
+        bConnect = undefined;
+        callControls = undefined;
+        smsControls = undefined;
+        cmdControls = undefined;
+        msgControls = undefined;
+        rlpControls = undefined;
+        opControls = undefined;
+        bandControls = undefined;
+        voiceMailControls = undefined;
+            
+        
+        isReady = false;
+        isRinging = false;
+        isCall = false;
+
+        function print(m) {
+            messages.appendChild( create_element("div",{className:"message", innerHTML:m}) );
+            
+            resize();
+        }
+        function objSize(obj) {
+            var size = 0, key;
+            for (key in obj) {
+                if (obj.hasOwnProperty(key)) size++;
+            }
+            return size
+        }
+        function connect() {
+            messages.innerHTML = "";
+            socket = new WebSocket(iUrl.value);
+            socket.onopen = function() {
+                bConnect.classList.remove("shown");
+                bConnect.classList.add("hidden");
+                
+                controlsContainer.classList.remove("hidden");
+                controlsContainer.classList.add("shown");
+
+                iUrl.classList.remove("shown");
+                iUrl.classList.add("hidden");
+                
+                activity.innerHTML = "opened";
+                messages.innerHTML = "";
+            };
+            socket.onmessage = function (evt) { 
+                var received_msg = evt.data;
+                var obj = parseJSON(evt.data);
+                if (obj.activity) {
+                    updateActivity(obj)
+                    delete obj.activity
+                } else if (objSize(obj) > 0) {
+                    if (objSize(obj) > 1 &&  obj.response && obj.response == "ok" ) {
+                        delete obj.response
+                    }
+                    
+                    messages.append(createKV(obj));
+                    
+                    resize();
+                }
+            };
+            socket.onclose = function() { 
+                bConnect.classList.remove("hidden");
+                bConnect.classList.add("shown");
+
+                controlsContainer.classList.remove("shown");
+                controlsContainer.classList.add("hidden");
+
+                iUrl.classList.remove("hidden");
+                iUrl.classList.add("shown");
+                
+                activity.innerHTML = "closed";
+
+                activity.removeClasses(["ready","unknown","ringing","call"]);
+
+                print("closed");
+            };
+        }
+        
+        function resize() {
+            
+            const headerHeight = header.clientHeight;
+            console.log(window.innerHeight - headerHeight);
+            
+            messages.style.height = (window.innerHeight - headerHeight-40)+"px";
+            messages.style.width = (window.innerWidth -40)+"px";
+            
+            messages.scroll(0,(messages.style.height.replace("px","")+20));
+            
+            
+        }
+        
+        function parseToClass(answer) {
+            return {"ready":"ready","unknown":"unknown","ringing":"ringing","call in progress":"call"}[answer]
+        }
+
+        function updateActivity(obj) {
+            activity.innerHTML = obj.activity;
+            classN = parseToClass(obj.activity)
+            if (! activity.classList.contains(classN)) {
+                activity.removeClasses(["ready","unknown","ringing","call"]);
+                activity.classList.add(classN);
+
+                if (obj.activity == 'ringing') {
+                    activity.classList.add('ringing');
+                    activity.innerHTML = "ringing";
+                } else if (obj.activity == 'call in progress') {
+                    activity.classList.add('call');
+                    activity.innerHTML = "call in progress";
+                } else if (obj.activity == 'unknown') {
+                    activity.classList.add('unknown');
+                    activity.innerHTML = "unknown";
+                } else {
+                    activity.classList.add('ready');
+                    activity.innerHTML = "ready";
+                }
+            }
+        }
+
+        function createKV(obj) {
+            var container = create_element("div",{className:"socketAnswer"});
+            for (var k in obj) {
+                console.log(obj);
+                var v = obj[k];
+                var line = create_element("div",{className:"socketAnswerLine"});
+                var key = create_element("div",{className:"socketAnswerKey", innerHTML:k});
+                var value = create_element("div",{className:"socketAnswerValue"});
+                if (typeof(v) == "object") {
+                    value.appendChild(createKV(v));
+                } else {
+                    value.innerHTML = v;
+                }
+                line.appendChild(key);
+                line.appendChild(value);
+                container.appendChild(line);
+            }
+            return container;
+
+        }
+        
+        function onToggleButtonClick(button, target) {
+            
+            if (target.classList.contains("shown")) {
+                button.classList.remove("on");
+                button.classList.add("off");
+                target.classList.remove("shown");
+                target.classList.add("hidden");
+            } else {
+                button.classList.remove("off");
+                button.classList.add("on");
+                target.classList.remove("hidden");
+                target.classList.add("shown");
+            }
+            
+        }
+        
+        function createToggleButton(control) {
+            let data = {};
+            data["className"] = "toggleButton off";
+            data["innerHTML"] = control.name;
+            data["onclick"] = function(e) {
+                onToggleButtonClick(e.target, control.container);
+            }
+            return create_element("div",data);
+        }
+        function createLabel(txt) {
+            return create_element("div",{className:"label",innerHTML:txt});
+        }
+        
+        function getSocket() {
+            return socket
+        }
+        function init() {
+            
+            
+            callControls = new CallControls();
+            smsControls = new SmsControls();
+            cmdControls = new CmdControls();
+            sysControls = new SysControls();
+            msgControls = new MessageControls();
+            rlpControls = new RlpControls();
+            opControls = new OpControls();
+            bandControls = new BandControls();
+            voiceMailControls = new VoiceMailControls();
+            
+            let controlsArray = [
+                    callControls,
+                    smsControls,
+                    sysControls,
+                    cmdControls,
+                    rlpControls,
+                    opControls,
+                    bandControls,
+                    voiceMailControls
+                ];
+            
+            
+            messages = create_element("div",{id:"messages",style:"padding: 10px;"});
+            header = create_element("div",{id:"header"});
+            
+            controlsContainer = create_element("div", {id:"controlsContainer", className:"hidden"}); 
+
+            activity = create_element("div", {id:"activity", innerHTML:""});
+
+            iUrl = create_element("input", {type:"text", value:"ws://host:port", size:40});
+            bConnect = create_element("div", {className:"button", onclick:connect, innerHTML:"connect"});
+
+
+
+
+            header.appendChild( activity );
+            header.appendChild( iUrl );
+            header.appendChild( bConnect );
+            header.appendChild( controlsContainer );
+            
+            
+            
+            for (var c in controlsArray) {
+                let control = controlsArray[c];
+                controlsContainer.appendChild( createToggleButton(control) );
+            
+            }
+            
+            controlsContainer.appendChild( msgControls.container );
+            
+            controlsContainer.appendChild( create_element("br") )
+            
+            
+            for (var c in controlsArray) {
+                let control = controlsArray[c];
+                let cont = control.container;
+                controlsContainer.appendChild( cont );
+            
+            }
+            
+
+            
+            document.body.appendChild( header );
+            document.body.appendChild( messages );
+
+
+            insertLocale();
+            
+            
+            resize();
+        }
+        function parseJSON(response) {
+            try { return JSON.parse(response); }
+            catch (e) { return {"error":response,"exception":e} }
+        }
+        </script>
+    </head>
+    <body onload="init()">
+    </body>
+</html>

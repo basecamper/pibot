@@ -1,0 +1,187 @@
+* {
+    font-family: 'Courier New', Courier, monospace;
+    padding: 0;
+    margin: 0;
+}
+body {
+
+    background: rgba(12, 20, 50, 0.5);
+}
+#header {
+    display: block;
+    z-index: 10000;
+    width: 100%;
+    text-align: center;
+    background: rgba(40, 50, 100, 0.1);
+    color: white;
+}
+
+#messages {
+    display: block;
+    overflow-y: scroll;
+    scrolling: auto;
+}
+
+.message {
+    display: block;
+    border-left: 4px solid red;
+    color: #FDF6E3;
+    padding: 10px;
+    background: rgba(12, 20, 50, 0.3);
+}
+
+.socketAnswer {
+    display: block;
+    border-left: 4px solid lightgreen;
+    color: #FDF6E3;
+    white-space: pre;
+    padding-left: 10px;
+    padding: 10px;
+}
+.socketAnswerLine {
+    display: block;
+}
+.socketAnswerKey {
+    display: inline-block;
+    min-width: 180px;
+}
+.socketAnswerValue {
+    display: inline-block;
+    margin-left: 12px;
+    padding: 12px;
+    background: rgba(12, 20, 50, 0.3);
+}
+
+#activity {
+    display: block;
+    padding: 5px;
+    padding-right: 20px;
+    font-size: 40px;
+    height: 50px;
+    letter-spacing: 10px;
+}
+
+#activity[class=ready] {
+    background-color: lightgreen;
+    color: black;
+    /*
+    */
+}
+#activity[class=unknown] {
+    background-color: black;
+    color: white;
+}
+#activity[class=ringing] {
+    background-color: yellow;
+    color: black;
+    animation: blinker 1s linear infinite;
+}
+#activity[class=call] {
+    background-color: white;
+    color: black;
+}
+  
+@keyframes blinker {
+    25% {
+        background-color: red;
+        color: green;
+    }
+
+    50% {
+        background-color: yellow;
+        color: black;
+    }
+
+    75% {
+        background-color: red;
+        color: green;
+    }
+}
+
+
+
+#controlsContainer[class=shown] {
+    display: block;
+    color: white;
+}
+#cmdContainer {
+    background: rgba(255, 0, 0, 0.3);
+}
+#callContainer {
+    background: rgba(0, 255, 0, 0.3);
+}
+#smsContainer {
+    background: rgba(255, 255, 0, 0.3);
+}
+#sysContainer {
+    background: rgba(0, 255, 255, 0.3);
+}
+#msgContainer {
+    display: inline-block;
+}
+.container {
+    padding: 4px;
+    margin: 4px;
+    display: inline-block;
+    border: 2px solid white;
+    background: rgba(255, 0, 255, 0.3);
+}
+.container[class=hidden] {
+    display: none;
+}
+
+
+.label {
+    display: inline-block;
+    padding: 4px;
+    padding-right: 8px;
+    font-size: 150%;
+}
+
+.toggleButton {
+    display: inline-block;
+    padding: 4px;
+    border: 1px solid black;
+    cursor: pointer;
+}
+.off {
+    background-color: #af8888;
+    color: white;
+}
+.on {
+    background-color: #eaeaea;
+    color: black;
+}
+
+.button {
+    display: inline-block;
+    padding: 4px;
+    border: 1px solid black;
+    background-color: bisque;
+    color: black;
+    cursor: pointer;
+}
+
+.hidden {
+    /*
+    display: none;
+    */
+    display: none;
+}
+
+.placeholder {
+    display: inline-block;
+    width: 20px;
+}
+.placeholderText {
+    display: inline-block;
+    padding: 4px;
+}
+
+#deleteSmsNum {
+    display: inline-block;
+    font-size: 20px;
+    padding-left: 0;
+    padding-right: 0;
+    width: 60px;
+}
